@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>AI Office</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <h1>🏢 AI Office</h1>
+        <p class="subtitle">Пиксельный офис с AI-работниками</p>
+      </div>
+      <div class="topbar-actions">
+        <button id="startPipelineBtn" class="primary">Запустить офис</button>
+        <button id="pauseBtn">Пауза</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="office-panel card">
+        <div class="panel-header">
+          <h2>Офис</h2>
+          <div class="legend">
+            <span><i class="dot idle"></i> idle</span>
+            <span><i class="dot work"></i> working</span>
+            <span><i class="dot break"></i> coffee</span>
+          </div>
+        </div>
+        <canvas id="officeCanvas" width="960" height="560"></canvas>
+      </section>
+
+      <aside class="sidebar">
+        <section class="card status-card">
+          <div class="panel-header">
+            <h2>Команда</h2>
+            <span id="teamSummary">0 агентов</span>
+          </div>
+          <div id="agentList" class="agent-list"></div>
+        </section>
+
+        <section class="card task-card">
+          <div class="panel-header">
+            <h2>Задачи</h2>
+            <button id="newTaskBtn">+ Новая</button>
+          </div>
+          <form id="taskForm" class="task-form">
+            <input id="taskTitle" type="text" placeholder="Название задачи" maxlength="80" />
+            <textarea id="taskDescription" rows="3" placeholder="Что нужно сделать?"></textarea>
+            <button class="primary" type="submit">Добавить задачу</button>
+          </form>
+          <div id="taskBoard" class="task-board"></div>
+        </section>
+
+        <section class="card log-card">
+          <div class="panel-header">
+            <h2>Логи офиса</h2>
+            <button id="clearLogBtn">Очистить</button>
+          </div>
+          <div id="logList" class="log-list"></div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
