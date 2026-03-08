@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Office Cozy</title>
+  <style>
+    :root {
+      --bg: #191512;
+      --panel: rgba(42, 32, 26, 0.88);
+      --panel-2: rgba(58, 44, 36, 0.92);
+      --panel-3: rgba(74, 57, 46, 0.95);
+      --line: rgba(255, 232, 196, 0.12);
+      --text: #f4eadb;
+      --muted: #c7b8a2;
+      --accent: #f0b96c;
+      --accent-2: #d48f47;
+      --ok: #9fd39a;
+      --warn: #f0d082;
+      --danger: #df8b7f;
+      --shadow: 0 18px 50px rgba(0,0,0,.35);
+      --radius: 20px;
+      --tile: 10px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top, rgba(251, 191, 117, 0.13), transparent 28%),
+        linear-gradient(180deg, #231b16 0%, #171210 100%);
+      overflow: hidden;
+    }
+
+    .app {
+      height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(300px, 1.15fr) minmax(260px, 380px);
+      gap: 18px;
+      padding: 18px;
+    }
+
+    .surface {
+      background: linear-gradient(180deg, rgba(53,40,33,.92), rgba(36,28,23,.94));
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .office-shell {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      overflow: hidden;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0));
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+    }
+
+    .brand p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .prompt-box {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .prompt-box input {
+      width: 100%;
+      border: 1px solid rgba(255,232,196,.1);
+      background: rgba(19, 15, 12, 0.8);
+      color: var(--text);
+      padding: 14px 16px;
+      border-radius: 16px;
+      outline: none;
+      font-size: 14px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+    }
+
+    .prompt-box input::placeholder { color: #ab9985; }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 13px 16px;
+      color: #2d1f13;
+      background: linear-gradient(180deg, #f5c37f, #dda055);
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(0,0,0,.25);
+    }
+
+    button.secondary {
+      color: var(--text);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border: 1px solid var(--line);
+    }
+
+    .stats {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .chip {
+      min-width: 98px;
+      padding: 11px 12px;
+      border-radius: 16px;
+      background: rgba(17,13,10,.4);
+      border: 1px solid var(--line);
+    }
+
+    .chip .label {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .chip .value {
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .canvas-wrap {
+      position: relative;
+      min-height: 0;
+      padding: 14px;
+      background: linear-gradient(180deg, rgba(255,255,255,.01), rgba(255,255,255,0));
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border-radius: 20px;
+      background: linear-gradient(180deg, #534236 0%, #2d241d 18%, #2e2620 100%);
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      border: 1px solid rgba(255,232,196,.08);
+    }
+
+    .legend {
+      position: absolute;
+      bottom: 28px;
+      left: 28px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      max-width: 75%;
+    }
+
+    .pill {
+      font-size: 12px;
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(19, 15, 12, 0.75);
+      border: 1px solid var(--line);
+      backdrop-filter: blur(5px);
+    }
+
+    .sidebar {
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 14px;
+      min-height: 0;
+    }
+
+    .panel {
+      padding: 16px;
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(53,40,33,.92), rgba(36,28,23,.96));
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      min-height: 0;
+    }
+
+    .panel h3 {
+      margin: 0 0 12px;
+      font-size: 16px;
+      letter-spacing: -0.02em;
+    }
+
+    .team-list, .task-list, .feed {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow: auto;
+      min-height: 0;
+      padding-right: 4px;
+    }
+
+    .team-item, .task-item, .feed-item {
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(20, 15, 12, 0.58);
+      border: 1px solid rgba(255,232,196,.08);
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .name {
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .badge {
+      padding: 6px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      white-space: nowrap;
+    }
+
+    .progress {
+      margin-top: 9px;
+      height: 7px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255,255,255,.05);
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #f0b96c, #f7d18f);
+    }
+
+    .feed-item strong { display: block; font-size: 13px; }
+    .feed-item span { display: block; color: var(--muted); font-size: 12px; margin-top: 4px; }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 999px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+
+    @media (max-width: 1100px) {
+      .app {
+        grid-template-columns: 1fr;
+        grid-template-rows: minmax(58vh, 1fr) auto;
+        overflow: auto;
+        height: auto;
+        min-height: 100vh;
+      }
+      body { overflow: auto; }
+      .sidebar { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 720px) {
+      .topbar { grid-template-columns: 1fr; }
+      .prompt-box { grid-template-columns: 1fr; }
+      .stats { justify-content: flex-start; }
+      .app { padding: 10px; gap: 10px; }
+      .canvas-wrap { height: 62vh; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="surface office-shell">
+      <div class="topbar">
+        <div>
+          <div class="brand">
+            <h1>AI Office</h1>
+            <p>Уютный тёплый офис, где команда реально живёт: сидит, работает, обсуждает задачи и иногда идёт за кофе.</p>
+          </div>
+          <div class="prompt-box">
+            <input id="taskInput" type="text" placeholder="Поставь задачу офису. Например: Сделайте Telegram Mini App для продажи курсов" />
+            <button id="assignBtn">Дать задачу</button>
+            <button id="focusBtn" class="secondary">Тихий режим</button>
+          </div>
+        </div>
+        <div class="stats">
+          <div class="chip"><span class="label">Сотрудников</span><span class="value" id="statAgents">0</span></div>
+          <div class="chip"><span class="label">Активных задач</span><span class="value" id="statTasks">0</span></div>
+          <div class="chip"><span class="label">Кофе сегодня</span><span class="value" id="statCoffee">0</span></div>
+        </div>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="officeCanvas" width="1280" height="840"></canvas>
+        <div class="legend" id="legend"></div>
+      </div>
+    </section>
+
+    <aside class="sidebar">
+      <section class="panel">
+        <h3>Команда офиса</h3>
+        <div class="team-list" id="teamList"></div>
+      </section>
+      <section class="panel">
+        <h3>Очередь задач</h3>
+        <div class="task-list" id="taskList"></div>
+      </section>
+      <section class="panel" style="min-height: 0;">
+        <h3>Лента офиса</h3>
+        <div class="feed" id="feed"></div>
+      </section>
+    </aside>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('officeCanvas');
+    const ctx = canvas.getContext('2d');
+    const tile = 10;
+
+    const ui = {
+      teamList: document.getElementById('teamList'),
+      taskList: document.getElementById('taskList'),
+      feed: document.getElementById('feed'),
+      taskInput: document.getElementById('taskInput'),
+      assignBtn: document.getElementById('assignBtn'),
+      focusBtn: document.getElementById('focusBtn'),
+      statAgents: document.getElementById('statAgents'),
+      statTasks: document.getElementById('statTasks'),
+      statCoffee: document.getElementById('statCoffee'),
+      legend: document.getElementById('legend'),
+    };
+
+    const rooms = {
+      openSpace: { x: 7, y: 13, w: 70, h: 49, name: 'Open Space' },
+      lounge: { x: 82, y: 13, w: 33, h: 18, name: 'Lounge' },
+      coffee: { x: 82, y: 35, w: 33, h: 14, name: 'Coffee Bar' },
+      board: { x: 82, y: 53, w: 33, h: 9, name: 'Board Wall' },
+      meeting: { x: 7, y: 4, w: 46, h: 7, name: 'Meeting Room' },
+      archive: { x: 57, y: 4, w: 20, h: 7, name: 'Docs Nook' },
+    };
+
+    const desks = [
+      { x: 14, y: 21, owner: 'Director' },
+      { x: 30, y: 21, owner: 'Strategist' },
+      { x: 46, y: 21, owner: 'Architect' },
+      { x: 62, y: 21, owner: 'Developer' },
+      { x: 14, y: 39, owner: 'Reviewer' },
+      { x: 30, y: 39, owner: 'QA' },
+      { x: 46, y: 39, owner: 'Docs' },
+      { x: 62, y: 39, owner: 'Enablement' },
+    ];
+
+    const tasks = [];
+    let feedId = 1;
+    let coffeeCount = 0;
+    let quietMode = false;
+
+    const agents = [
+      createAgent('director', 'Ava', 'Director', desks[0], '#d7a86c'),
+      createAgent('strategist', 'Noah', 'Product Strategist', desks[1], '#b89067'),
+      createAgent('architect', 'Iris', 'Solution Architect', desks[2], '#d39f77'),
+      createAgent('developer', 'Mika', 'Developer', desks[3], '#8eace0'),
+      createAgent('reviewer', 'Luca', 'Reviewer', desks[4], '#8cc5a0'),
+      createAgent('qa', 'Sora', 'QA', desks[5], '#d9b676'),
+      createAgent('docs', 'Mila', 'Docs', desks[6], '#c7a1d6'),
+      createAgent('enablement', 'Theo', 'Enablement', desks[7], '#86b7b5'),
+    ];
+
+    function createAgent(id, name, role, desk, accent) {
+      return {
+        id, name, role, accent, desk,
+        x: desk.x, y: desk.y + 5,
+        targetX: desk.x, targetY: desk.y + 5,
+        state: 'working',
+        bubble: 'работает',
+        energy: 76 + Math.floor(Math.random() * 18),
+        focus: 60 + Math.floor(Math.random() * 35),
+        currentTaskId: null,
+        sitTimer: 0,
+      };
+    }
+
+    const pipeline = ['director', 'strategist', 'architect', 'developer', 'reviewer', 'qa', 'docs', 'enablement'];
+    const bubbleMap = {
+      idle: 'думает',
+      working: 'работает',
+      walking: 'идёт',
+      coffee: 'пьёт кофе',
+      meeting: 'обсуждает',
+      resting: 'отдыхает',
+    };
+
+    function addFeed(title, text) {
+      const item = { id: feedId++, title, text };
+      state.feed.unshift(item);
+      state.feed = state.feed.slice(0, 16);
+      renderFeed();
+    }
+
+    const state = { feed: [] };
+
+    function seed() {
+      addFeed('Офис открыт', 'Команда пришла, включила свет и заняла свои места.');
+      addFeed('Director', 'Ждёт задачу и готов распределять работу по офису.');
+      renderAll();
+    }
+
+    function createTask(prompt) {
+      const id = 'task_' + Math.random().toString(36).slice(2, 8);
+      const task = {
+        id,
+        prompt,
+        stageIndex: 0,
+        status: 'queued',
+        progress: 6,
+        assignee: 'director',
+        summary: 'Новая задача ожидает распределения.',
+      };
+      tasks.unshift(task);
+      addFeed('Новая задача', prompt);
+      runTask(task);
+      renderAll();
+    }
+
+    function runTask(task) {
+      const stageId = pipeline[task.stageIndex];
+      const agent = agents.find(a => a.id === stageId);
+      if (!agent) return;
+
+      task.assignee = stageId;
+      task.status = 'in_progress';
+      agent.currentTaskId = task.id;
+
+      if (stageId === 'director' || stageId === 'strategist') {
+        sendAgentTo(agent, rooms.meeting.x + 10 + Math.random() * 10, rooms.meeting.y + 4);
+        agent.state = 'meeting';
+      } else {
+        sendAgentTo(agent, agent.desk.x, agent.desk.y + 5);
+        agent.state = 'working';
+      }
+
+      agent.bubble = bubbleMap[agent.state];
+      const stageName = agent.role;
+      addFeed(stageName, stageText(stageId, task.prompt));
+
+      const duration = quietMode ? 1800 : 2600;
+      window.setTimeout(() => completeStage(task, agent), duration);
+      renderAll();
+    }
+
+    function completeStage(task, agent) {
+      task.stageIndex += 1;
+      task.progress = Math.min(100, 8 + task.stageIndex * 12);
+      agent.energy = Math.max(38, agent.energy - 4);
+      agent.focus = Math.min(100, agent.focus + 3);
+      agent.currentTaskId = null;
+
+      if (task.stageIndex >= pipeline.length) {
+        task.status = 'done';
+        task.progress = 100;
+        task.summary = 'Офис закончил задачу и собрал финальный пакет.';
+        addFeed('Проект готов', 'Director собрал итог, команда завершила работу и вернулась к спокойному ритму.');
+        maybeCoffee(agent);
+      } else {
+        task.summary = handoffText(pipeline[task.stageIndex - 1], pipeline[task.stageIndex]);
+        maybeCoffee(agent);
+        window.setTimeout(() => runTask(task), quietMode ? 700 : 1000);
+      }
+      renderAll();
+    }
+
+    function stageText(stage, prompt) {
+      const map = {
+        director: 'Разбирает задачу и распределяет работу: ' + short(prompt),
+        strategist: 'Формирует brief, цели и риски.',
+        architect: 'Продумывает структуру решения и модули.',
+        developer: 'Собирает реализацию и основные файлы проекта.',
+        reviewer: 'Проверяет качество решения и архитектуру.',
+        qa: 'Проверяет сценарии и критерии готовности.',
+        docs: 'Собирает README, handoff и итоговую подачу.',
+        enablement: 'Фиксирует лучшие практики для команды.',
+      };
+      return map[stage] || 'Работает над задачей.';
+    }
+
+    function handoffText(from, to) {
+      const nameFrom = agents.find(a => a.id === from)?.role || from;
+      const nameTo = agents.find(a => a.id === to)?.role || to;
+      return `${nameFrom} передал результат роли ${nameTo}.`;
+    }
+
+    function short(text) {
+      return text.length > 72 ? text.slice(0, 72) + '…' : text;
+    }
+
+    function maybeCoffee(agent) {
+      const roll = Math.random();
+      if (roll < 0.35) {
+        sendAgentTo(agent, rooms.coffee.x + 8 + Math.random() * 10, rooms.coffee.y + 7 + Math.random() * 2);
+        agent.state = 'coffee';
+        agent.bubble = bubbleMap.coffee;
+        coffeeCount += 1;
+        addFeed(agent.role, `${agent.name} взял короткий кофе-брейк.`);
+        setTimeout(() => goDesk(agent), quietMode ? 1600 : 2400);
+      } else {
+        goDesk(agent);
+      }
+    }
+
+    function goDesk(agent) {
+      sendAgentTo(agent, agent.desk.x, agent.desk.y + 5);
+      agent.state = 'working';
+      agent.bubble = bubbleMap.working;
+      renderAll();
+    }
+
+    function sendAgentTo(agent, x, y) {
+      agent.targetX = x;
+      agent.targetY = y;
+      if (Math.abs(agent.x - x) > 0.1 || Math.abs(agent.y - y) > 0.1) {
+        agent.state = agent.state === 'meeting' ? 'meeting' : 'walking';
+        if (agent.state === 'walking') agent.bubble = bubbleMap.walking;
+      }
+    }
+
+    function stepAgents() {
+      agents.forEach(agent => {
+        const dx = agent.targetX - agent.x;
+        const dy = agent.targetY - agent.y;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist > 0.08) {
+          const speed = quietMode ? 0.045 : 0.065;
+          agent.x += (dx / dist) * Math.min(speed, dist);
+          agent.y += (dy / dist) * Math.min(speed, dist);
+        } else {
+          agent.x = agent.targetX;
+          agent.y = agent.targetY;
+          if (agent.state === 'walking') {
+            agent.state = 'working';
+            agent.bubble = bubbleMap.working;
+          }
+        }
+
+        if (!agent.currentTaskId && agent.state === 'working' && Math.random() < 0.0009) {
+          const mood = Math.random();
+          if (mood < 0.5) {
+            sendAgentTo(agent, rooms.lounge.x + 10 + Math.random() * 8, rooms.lounge.y + 10);
+            agent.state = 'resting';
+            agent.bubble = bubbleMap.resting;
+            setTimeout(() => goDesk(agent), quietMode ? 1700 : 2600);
+          } else {
+            sendAgentTo(agent, rooms.coffee.x + 6 + Math.random() * 8, rooms.coffee.y + 7);
+            agent.state = 'coffee';
+            agent.bubble = bubbleMap.coffee;
+            coffeeCount += 1;
+            setTimeout(() => goDesk(agent), quietMode ? 1500 : 2300);
+          }
+        }
+      });
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawShell();
+      drawRooms();
+      drawDesks();
+      drawDecor();
+      agents.forEach(drawAgent);
+    }
+
+    function drawShell() {
+      fillRect(0, 0, 128, 84, '#2a221d');
+      fillRect(1, 1, 126, 82, '#342a23');
+      fillRect(2, 2, 124, 80, '#41342b');
+      // soft light
+      const lights = [
+        [24, 18], [40, 18], [56, 18], [72, 18], [95, 18], [95, 41], [95, 57]
+      ];
+      lights.forEach(([x, y]) => glow(x, y, 11, 'rgba(249, 190, 109, 0.11)'));
+    }
+
+    function drawRooms() {
+      Object.values(rooms).forEach(r => {
+        fillRect(r.x, r.y, r.w, r.h, '#4b3b31');
+        fillRect(r.x + 1, r.y + 1, r.w - 2, r.h - 2, roomColor(r.name));
+        frameRect(r.x, r.y, r.w, r.h, '#231b16');
+      });
+
+      // corridors
+      fillRect(77, 4, 3, 58, '#6a5545');
+      fillRect(7, 30, 108, 3, '#6a5545');
+
+      // windows
+      for (let i = 0; i < 5; i++) {
+        fillRect(12 + i * 8, 5, 5, 2, '#7d7b8e');
+        fillRect(12 + i * 8, 6, 5, 1, '#b5c5db');
+      }
+      for (let i = 0; i < 3; i++) {
+        fillRect(86 + i * 9, 14, 6, 2, '#7d7b8e');
+        fillRect(86 + i * 9, 15, 6, 1, '#b5c5db');
+      }
+    }
+
+    function roomColor(name) {
+      const map = {
+        'Open Space': '#5c493d',
+        'Lounge': '#644f42',
+        'Coffee Bar': '#5a473a',
+        'Board Wall': '#554236',
+        'Meeting Room': '#604d40',
+        'Docs Nook': '#5b493c',
+      };
+      return map[name] || '#5c493d';
+    }
+
+    function drawDesks() {
+      desks.forEach(d => {
+        // rug
+        fillRect(d.x - 5, d.y + 3, 10, 5, '#6d5849');
+        // desk
+        fillRect(d.x - 4, d.y, 8, 4, '#8d6648');
+        fillRect(d.x - 4, d.y + 4, 1, 2, '#6f513a');
+        fillRect(d.x + 3, d.y + 4, 1, 2, '#6f513a');
+        // monitor
+        fillRect(d.x - 1, d.y - 2, 3, 2, '#1b2028');
+        fillRect(d.x, d.y, 1, 1, '#2a313c');
+        // chair
+        fillRect(d.x - 2, d.y + 5, 4, 2, '#3a2c27');
+        fillRect(d.x - 1, d.y + 7, 2, 1, '#2a211d');
+        // mug
+        fillRect(d.x + 2, d.y + 1, 1, 1, '#ecd7b7');
+      });
+
+      // meeting table
+      fillRect(21, 6, 18, 3, '#8b6549');
+      fillRect(22, 9, 1, 1, '#5a4331');
+      fillRect(37, 9, 1, 1, '#5a4331');
+
+      // sofa / lounge
+      fillRect(88, 18, 12, 4, '#8f6b54');
+      fillRect(89, 22, 10, 1, '#5a4331');
+      fillRect(102, 18, 7, 4, '#7a5b46');
+      // board
+      fillRect(87, 55, 24, 4, '#2f251f');
+      fillRect(88, 56, 22, 2, '#d7c39b');
+
+      // coffee bar
+      fillRect(88, 38, 18, 4, '#88654c');
+      fillRect(90, 35, 2, 3, '#3f2d22');
+      fillRect(93, 36, 1, 1, '#e9d3a8');
+      fillRect(98, 35, 2, 3, '#3f2d22');
+      fillRect(107, 39, 4, 6, '#5b4738');
+    }
+
+    function drawDecor() {
+      // plants
+      plant(10, 58); plant(74, 58); plant(110, 57); plant(59, 6);
+      // lamps
+      lamp(16, 15); lamp(32, 15); lamp(48, 15); lamp(64, 15); lamp(97, 16); lamp(97, 40);
+      // notice board text blocks
+      fillRect(89, 56, 4, 1, '#ab8255');
+      fillRect(95, 56, 6, 1, '#7a5e45');
+      fillRect(103, 56, 5, 1, '#c89b6a');
+    }
+
+    function plant(x, y) {
+      fillRect(x, y, 2, 2, '#5f4938');
+      fillRect(x, y - 2, 2, 2, '#6ba36d');
+      fillRect(x - 1, y - 1, 1, 1, '#7ab87b');
+      fillRect(x + 2, y - 1, 1, 1, '#7ab87b');
+    }
+
+    function lamp(x, y) {
+      fillRect(x, y, 1, 3, '#4c3b2f');
+      fillRect(x - 1, y - 1, 3, 1, '#cf9c5e');
+      glow(x, y, 5, 'rgba(242, 186, 106, 0.12)');
+    }
+
+    function drawAgent(agent) {
+      const px = Math.round(agent.x);
+      const py = Math.round(agent.y);
+
+      if (agent.state === 'working' && nearDesk(agent)) {
+        drawSeated(px, py, agent.accent);
+      } else {
+        drawStanding(px, py, agent.accent);
+      }
+      drawBubble(px, py - 5, agent.bubble);
+    }
+
+    function nearDesk(agent) {
+      return Math.abs(agent.x - agent.desk.x) < 0.8 && Math.abs(agent.y - (agent.desk.y + 5)) < 0.8;
+    }
+
+    function drawStanding(x, y, accent) {
+      fillRect(x - 1, y - 3, 3, 2, '#f0d3b1');
+      fillRect(x - 2, y - 1, 5, 4, accent);
+      fillRect(x - 2, y + 3, 2, 3, '#3a2c27');
+      fillRect(x + 1, y + 3, 2, 3, '#3a2c27');
+      fillRect(x - 2, y, 1, 1, '#f2e6d5');
+      fillRect(x + 1, y, 1, 1, '#f2e6d5');
+    }
+
+    function drawSeated(x, y, accent) {
+      fillRect(x - 1, y - 3, 3, 2, '#f0d3b1');
+      fillRect(x - 2, y - 1, 5, 3, accent);
+      fillRect(x - 2, y + 2, 5, 1, '#382b26');
+      fillRect(x - 1, y + 3, 1, 1, '#2c211d');
+      fillRect(x + 1, y + 3, 1, 1, '#2c211d');
+    }
+
+    function drawBubble(x, y, text) {
+      const width = Math.max(8, text.length * 0.95 + 3);
+      fillRect(x - width / 2, y - 2, width, 3, '#1f1915');
+      frameRect(x - width / 2, y - 2, width, 3, '#75604d');
+      pixelText(text, x - width / 2 + 1, y, '#f3e4cf');
+    }
+
+    function pixelText(text, x, y, color) {
+      ctx.fillStyle = color;
+      ctx.font = '10px monospace';
+      ctx.fillText(text, x * tile, y * tile);
+    }
+
+    function fillRect(x, y, w, h, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x * tile, y * tile, w * tile, h * tile);
+    }
+
+    function frameRect(x, y, w, h, color) {
+      fillRect(x, y, w, 1, color);
+      fillRect(x, y + h - 1, w, 1, color);
+      fillRect(x, y, 1, h, color);
+      fillRect(x + w - 1, y, 1, h, color);
+    }
+
+    function glow(x, y, r, color) {
+      const g = ctx.createRadialGradient(x * tile, y * tile, 0, x * tile, y * tile, r * tile);
+      g.addColorStop(0, color);
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect((x - r) * tile, (y - r) * tile, r * 2 * tile, r * 2 * tile);
+    }
+
+    function renderTeam() {
+      ui.teamList.innerHTML = agents.map(agent => {
+        const task = tasks.find(t => t.id === agent.currentTaskId);
+        return `
+          <div class="team-item">
+            <div class="row">
+              <div>
+                <div class="name">${agent.name}</div>
+                <div class="sub">${agent.role}</div>
+              </div>
+              <div class="badge">${agent.bubble}</div>
+            </div>
+            <div class="sub">${task ? short(task.prompt) : 'Свободен и на своём месте.'}</div>
+            <div class="progress"><span style="width:${agent.energy}%"></span></div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderTasks() {
+      ui.taskList.innerHTML = tasks.length ? tasks.map(task => {
+        const agent = agents.find(a => a.id === task.assignee);
+        return `
+          <div class="task-item">
+            <div class="row">
+              <div class="name">${short(task.prompt)}</div>
+              <div class="badge">${task.status === 'done' ? 'готово' : 'в работе'}</div>
+            </div>
+            <div class="sub">Сейчас: ${agent ? agent.role : 'Офис'} · ${task.summary}</div>
+            <div class="progress"><span style="width:${task.progress}%"></span></div>
+          </div>
+        `;
+      }).join('') : `<div class="task-item"><div class="sub">Пока задач нет. Дай офису работу сверху.</div></div>`;
+    }
+
+    function renderFeed() {
+      ui.feed.innerHTML = state.feed.map(item => `
+        <div class="feed-item">
+          <strong>${item.title}</strong>
+          <span>${item.text}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderStats() {
+      ui.statAgents.textContent = String(agents.length);
+      ui.statTasks.textContent = String(tasks.filter(t => t.status !== 'done').length);
+      ui.statCoffee.textContent = String(coffeeCount);
+      ui.legend.innerHTML = [
+        'Director раздаёт работу',
+        'Developer и QA сидят на местах',
+        'Кофе и отдых происходят спокойно',
+        quietMode ? 'Тихий режим включён' : 'Обычный ритм офиса'
+      ].map(t => `<div class="pill">${t}</div>`).join('');
+    }
+
+    function renderAll() {
+      renderTeam();
+      renderTasks();
+      renderStats();
+    }
+
+    ui.assignBtn.addEventListener('click', () => {
+      const value = ui.taskInput.value.trim();
+      if (!value) return;
+      createTask(value);
+      ui.taskInput.value = '';
+    });
+
+    ui.taskInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') ui.assignBtn.click();
+    });
+
+    ui.focusBtn.addEventListener('click', () => {
+      quietMode = !quietMode;
+      ui.focusBtn.textContent = quietMode ? 'Обычный режим' : 'Тихий режим';
+      addFeed('Офис', quietMode ? 'Команда перешла в спокойный тихий режим.' : 'Команда вернулась в обычный рабочий ритм.');
+      renderStats();
+    });
+
+    function loop() {
+      stepAgents();
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    seed();
+    loop();
+  </script>
+</body>
+</html>
