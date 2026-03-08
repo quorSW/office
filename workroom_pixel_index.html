@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Workroom Pixel</title>
+  <style>
+    :root {
+      --bg: #17131b;
+      --panel: rgba(39, 28, 34, 0.88);
+      --panel-strong: rgba(53, 38, 46, 0.94);
+      --border: rgba(255, 230, 190, 0.18);
+      --text: #f8ead7;
+      --muted: #ccb8a3;
+      --accent: #ffcb73;
+      --accent-2: #ff9f68;
+      --green: #8ad17e;
+      --red: #ef7b73;
+      --shadow: 0 24px 60px rgba(0,0,0,.45);
+      --pixel-shadow: 0 8px 0 rgba(0,0,0,.18);
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at top left, rgba(255,194,122,.08), transparent 24%),
+        radial-gradient(circle at top right, rgba(142,193,255,.06), transparent 22%),
+        linear-gradient(180deg, #16121a 0%, #1b1520 100%);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      padding: 18px;
+    }
+
+    .app {
+      width: min(1480px, 100%);
+      min-height: 92vh;
+      display: grid;
+      grid-template-columns: minmax(680px, 1.2fr) minmax(320px, .85fr);
+      gap: 18px;
+    }
+
+    .stage-card,
+    .side-card {
+      background: linear-gradient(180deg, rgba(50,36,44,.94), rgba(28,20,27,.94));
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      overflow: hidden;
+    }
+
+    .stage-shell {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-height: 92vh;
+    }
+
+    .topbar {
+      padding: 18px 20px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      background: linear-gradient(180deg, rgba(255,255,255,.03), transparent);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(180deg, #5a3d33, #34222a);
+      border: 1px solid rgba(255, 216, 176, .18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 10px 20px rgba(0,0,0,.25);
+      font-size: 20px;
+    }
+
+    .title {
+      font-weight: 800;
+      letter-spacing: -.03em;
+      font-size: 22px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 2px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.07);
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 16px rgba(138, 209, 126, .75);
+    }
+
+    .stage-wrap {
+      position: relative;
+      padding: 18px;
+    }
+
+    canvas {
+      width: 100%;
+      height: min(72vh, 860px);
+      display: block;
+      border-radius: 24px;
+      background: linear-gradient(180deg, #3a2730 0%, #241a22 100%);
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05), inset 0 -18px 80px rgba(0,0,0,.28);
+      border: 1px solid rgba(255, 225, 189, .08);
+    }
+
+    .scene-tip {
+      position: absolute;
+      left: 34px;
+      bottom: 32px;
+      padding: 11px 14px;
+      border-radius: 16px;
+      background: rgba(21, 15, 20, .72);
+      border: 1px solid rgba(255,255,255,.08);
+      color: var(--muted);
+      font-size: 13px;
+      max-width: min(430px, calc(100% - 68px));
+      backdrop-filter: blur(8px);
+    }
+
+    .composer {
+      padding: 16px 18px 18px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      border-top: 1px solid rgba(255,255,255,.06);
+      background: linear-gradient(180deg, transparent, rgba(0,0,0,.12));
+    }
+
+    .input-wrap {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 20px;
+      padding: 10px 12px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 56px;
+      max-height: 150px;
+      resize: vertical;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      line-height: 1.45;
+    }
+
+    textarea::placeholder { color: #bba892; }
+
+    .mini-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    button, .chip {
+      border: 0;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .ghost-btn {
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.05);
+      color: var(--muted);
+      border: 1px solid rgba(255,255,255,.07);
+    }
+
+    .send-btn {
+      min-width: 140px;
+      padding: 0 20px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, #ffc977 0%, #f2a662 100%);
+      color: #2d1c16;
+      font-weight: 800;
+      box-shadow: 0 14px 30px rgba(255, 172, 90, .28);
+    }
+
+    .send-btn:hover { transform: translateY(-1px); }
+
+    .side-card {
+      min-height: 92vh;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+    }
+
+    .side-top {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+
+    .helper-card {
+      display: grid;
+      grid-template-columns: 76px 1fr;
+      gap: 14px;
+      align-items: center;
+      padding: 14px;
+      border-radius: 22px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.07);
+    }
+
+    .avatar-box {
+      width: 76px;
+      height: 76px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #5a3d33, #34222a);
+      display: grid;
+      place-items: center;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .avatar-box::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 12%, rgba(255,225,170,.35), transparent 38%);
+      pointer-events: none;
+    }
+
+    .info-name { font-weight: 800; font-size: 18px; }
+    .info-role { color: var(--muted); font-size: 13px; margin-top: 3px; }
+    .info-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+    .chip {
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      font-size: 12px;
+      border: 1px solid rgba(255,255,255,.06);
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .quick-btn {
+      padding: 12px 12px;
+      border-radius: 16px;
+      text-align: left;
+      background: rgba(255,255,255,.045);
+      border: 1px solid rgba(255,255,255,.07);
+      color: var(--text);
+      transition: .18s ease;
+    }
+    .quick-btn:hover { transform: translateY(-1px); background: rgba(255,255,255,.07); }
+    .quick-btn small { display:block; color: var(--muted); margin-top: 4px; }
+
+    .section-tabs {
+      display: flex;
+      gap: 8px;
+      padding: 14px 18px 0;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 11px 10px;
+      border-radius: 14px;
+      text-align: center;
+      background: rgba(255,255,255,.04);
+      color: var(--muted);
+      border: 1px solid rgba(255,255,255,.05);
+      font-size: 13px;
+    }
+    .tab.active {
+      background: rgba(255, 200, 116, .11);
+      color: var(--text);
+      border-color: rgba(255, 200, 116, .18);
+    }
+
+    .panel-content {
+      padding: 14px 18px 18px;
+      overflow: auto;
+      min-height: 0;
+    }
+
+    .messages, .tasks-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .bubble {
+      padding: 13px 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.045);
+      border: 1px solid rgba(255,255,255,.065);
+      line-height: 1.5;
+    }
+
+    .bubble.user {
+      background: rgba(255, 201, 120, .12);
+      border-color: rgba(255, 201, 120, .18);
+    }
+
+    .bubble-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .task-item {
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.065);
+    }
+
+    .task-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .task-title { font-weight: 700; }
+    .task-meta { color: var(--muted); font-size: 12px; }
+
+    .progress {
+      height: 9px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255,255,255,.07);
+      margin-top: 10px;
+    }
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #ffca76, #ff9e69);
+      transition: width .35s ease;
+    }
+
+    .team-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .team-card {
+      padding: 12px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.045);
+      border: 1px solid rgba(255,255,255,.06);
+      min-height: 100px;
+    }
+    .team-card strong { display:block; margin-top: 10px; }
+    .team-card small { color: var(--muted); }
+
+    .pixel-face {
+      width: 32px;
+      height: 32px;
+      position: relative;
+      image-rendering: pixelated;
+      margin: 0 auto;
+    }
+
+    .pixel-face span {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: #1b1416;
+      box-shadow: 0 0 0 4px transparent;
+    }
+
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+
+    @media (max-width: 1120px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+      .stage-shell, .side-card { min-height: unset; }
+      canvas { height: min(62vh, 720px); }
+      .side-card { min-height: 48vh; }
+    }
+
+    @media (max-width: 740px) {
+      body { padding: 10px; }
+      .topbar { flex-direction: column; align-items: stretch; }
+      .composer { grid-template-columns: 1fr; }
+      .send-btn { min-height: 54px; }
+      .team-grid, .quick-grid { grid-template-columns: 1fr; }
+      .scene-tip { position: static; margin-top: 10px; max-width: 100%; }
+      canvas { height: 48vh; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="stage-card stage-shell">
+      <div class="topbar">
+        <div class="brand">
+          <div class="badge">☕</div>
+          <div>
+            <div class="title">Workroom Pixel</div>
+            <div class="subtitle">Уютная пиксельная комната с живым AI-помощником</div>
+          </div>
+        </div>
+        <div class="status-pill"><span class="dot" id="statusDot"></span><span id="presenceText">Мilo на месте и готов к задаче</span></div>
+      </div>
+
+      <div class="stage-wrap">
+        <canvas id="roomCanvas" width="1280" height="820"></canvas>
+        <div class="scene-tip" id="sceneTip">Milo обычно сидит за столом, думает над задачей и иногда идёт налить себе кофе. Комната реагирует на его текущее состояние.</div>
+      </div>
+
+      <div class="composer">
+        <div class="input-wrap">
+          <textarea id="taskInput" placeholder="Напиши задачу для Milo. Например: помоги придумать лендинг для курса и набросай структуру."></textarea>
+          <div class="mini-actions">
+            <button class="ghost-btn" id="randomIdeaBtn" type="button">Идея</button>
+            <button class="ghost-btn" id="clearBtn" type="button">Очистить</button>
+          </div>
+        </div>
+        <button class="send-btn" id="sendBtn" type="button">Отправить Milo</button>
+      </div>
+    </section>
+
+    <aside class="side-card">
+      <div class="side-top">
+        <div class="helper-card">
+          <div class="avatar-box">
+            <div class="pixel-face" aria-hidden="true">
+              <span style="left:8px;top:8px;background:#24181c;box-shadow:4px 0 #24181c,8px 0 #24181c,12px 0 #24181c,16px 0 #24181c,20px 0 #24181c,4px 4px #24181c,8px 4px #24181c,12px 4px #24181c,16px 4px #24181c; background:#4b312d;"></span>
+              <span style="left:8px;top:12px;background:#f2c89d;box-shadow:4px 0 #f2c89d,8px 0 #f2c89d,12px 0 #f2c89d,16px 0 #f2c89d,20px 0 #f2c89d,0 4px #f2c89d,4px 4px #f2c89d,8px 4px #f2c89d,12px 4px #f2c89d,16px 4px #f2c89d,20px 4px #f2c89d,24px 4px #f2c89d,0 8px #f2c89d,4px 8px #f2c89d,8px 8px #2e1d20,12px 8px #f2c89d,16px 8px #2e1d20,20px 8px #f2c89d,24px 8px #f2c89d,4px 12px #f2c89d,8px 12px #f2c89d,12px 12px #dd9a87,16px 12px #f2c89d,20px 12px #f2c89d,8px 16px #7d4b44,12px 16px #7d4b44,16px 16px #7d4b44;"></span>
+            </div>
+          </div>
+          <div>
+            <div class="info-name">Milo</div>
+            <div class="info-role">Твой уютный AI-помощник</div>
+            <div class="info-meta">
+              <span class="chip" id="modeChip">mode: focus</span>
+              <span class="chip" id="energyChip">energy: 84%</span>
+              <span class="chip" id="stateChip">state: idle</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="quick-grid">
+          <button class="quick-btn" data-prompt="Сделай план красивого лендинга для моего продукта и распиши блоки.">Лендинг<small>структура и блоки</small></button>
+          <button class="quick-btn" data-prompt="Придумай Telegram Mini App и опиши главные экраны, кнопки и логику.">Mini App<small>идея и экраны</small></button>
+          <button class="quick-btn" data-prompt="Помоги придумать название, позиционирование и короткое описание моего проекта.">Брендинг<small>название и позиционирование</small></button>
+          <button class="quick-btn" data-prompt="Набросай roadmap проекта на 7 дней с простыми шагами.">Roadmap<small>план на неделю</small></button>
+        </div>
+      </div>
+
+      <div class="section-tabs">
+        <button class="tab active" data-tab="chat">Чат</button>
+        <button class="tab" data-tab="tasks">Задачи</button>
+        <button class="tab" data-tab="team">Уголок Milo</button>
+      </div>
+
+      <div class="panel-content" id="panelContent"></div>
+    </aside>
+  </div>
+
+  <script>
+    const state = {
+      mode: 'focus',
+      energy: 84,
+      assistantState: 'idle',
+      currentTask: null,
+      messages: [
+        {
+          role: 'assistant',
+          title: 'Milo',
+          time: nowTime(),
+          text: 'Привет. Я уже в комнате и готов помочь. Напиши задачу — я спокойно разберу её по шагам и предложу лучший ход.'
+        }
+      ],
+      tasks: [],
+      activeTab: 'chat'
+    };
+
+    const canvas = document.getElementById('roomCanvas');
+    const ctx = canvas.getContext('2d');
+    const taskInput = document.getElementById('taskInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const panelContent = document.getElementById('panelContent');
+    const presenceText = document.getElementById('presenceText');
+    const sceneTip = document.getElementById('sceneTip');
+    const modeChip = document.getElementById('modeChip');
+    const energyChip = document.getElementById('energyChip');
+    const stateChip = document.getElementById('stateChip');
+    const statusDot = document.getElementById('statusDot');
+
+    const tabs = [...document.querySelectorAll('.tab')];
+    const quickBtns = [...document.querySelectorAll('.quick-btn')];
+    const randomIdeaBtn = document.getElementById('randomIdeaBtn');
+    const clearBtn = document.getElementById('clearBtn');
+
+    const ideas = [
+      'Помоги придумать уютный лендинг для проекта и распиши главные секции.',
+      'Составь простой план запуска Telegram Mini App на неделю.',
+      'Придумай название, слоган и короткое описание моего продукта.',
+      'Сделай roadmap проекта с шагами: идея, дизайн, код, запуск.',
+      'Подскажи, как красиво оформить страницу продукта в тёплом стиле.'
+    ];
+
+    const room = {
+      desk: { x: 770, y: 460, w: 250, h: 88 },
+      chair: { x: 808, y: 530, w: 82, h: 58 },
+      coffee: { x: 175, y: 495, w: 120, h: 90 },
+      couch: { x: 173, y: 620, w: 220, h: 85 },
+      board: { x: 940, y: 146, w: 205, h: 118 },
+      plant: { x: 1088, y: 535 },
+      window: { x: 132, y: 110, w: 260, h: 150 }
+    };
+
+    const actor = {
+      x: 835,
+      y: 515,
+      tx: 835,
+      ty: 515,
+      facing: 1,
+      mood: 'focus',
+      animationTick: 0,
+      coffeeCooldown: 0,
+      restCooldown: 0,
+      currentBubble: 'Готов к работе',
+      seat: { x: 835, y: 515 },
+      coffeeSpot: { x: 305, y: 538 },
+      couchSpot: { x: 285, y: 660 },
+      meetingSpot: { x: 1010, y: 318 }
+    };
+
+    const behaviorTimeline = [];
+
+    function nowTime() {
+      return new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function setAssistantState(next) {
+      state.assistantState = next;
+      stateChip.textContent = 'state: ' + next;
+
+      const presets = {
+        idle: {
+          dot: '#8ad17e',
+          presence: 'Milo на месте и готов к задаче',
+          tip: 'Milo спокойно сидит за столом и ждёт твою задачу. Иногда он встаёт за кофе, но быстро возвращается.',
+          bubble: 'Готов к работе'
+        },
+        thinking: {
+          dot: '#ffd86f',
+          presence: 'Milo обдумывает задачу',
+          tip: 'Сейчас Milo сосредоточен: смотрит на монитор, складывает идею по полочкам и ищет лучший путь.',
+          bubble: 'Думаю...'
+        },
+        working: {
+          dot: '#8ad17e',
+          presence: 'Milo работает над задачей',
+          tip: 'Сейчас он в фокусе: печатает, проверяет план и собирает решение без спешки и хаоса.',
+          bubble: 'Работаю'
+        },
+        coffee: {
+          dot: '#ffb06b',
+          presence: 'Milo ушёл за кофе',
+          tip: 'Небольшой перерыв. Milo наливает кофе, переводит дух и скоро вернётся к столу.',
+          bubble: 'Кофе ☕'
+        },
+        resting: {
+          dot: '#9cbcff',
+          presence: 'Milo отдыхает пару минут',
+          tip: 'Иногда короткий отдых помогает думать лучше. Milo скоро вернётся в режим фокуса.',
+          bubble: 'Пауза'
+        },
+        done: {
+          dot: '#8ad17e',
+          presence: 'Milo закончил и ждёт новую задачу',
+          tip: 'Задача завершена. Можно уточнить, расширить результат или дать новую работу.',
+          bubble: 'Готово'
+        }
+      };
+
+      const p = presets[next] || presets.idle;
+      statusDot.style.background = p.dot;
+      statusDot.style.boxShadow = `0 0 16px ${p.dot}aa`;
+      presenceText.textContent = p.presence;
+      sceneTip.textContent = p.tip;
+      actor.currentBubble = p.bubble;
+    }
+
+    function pushMessage(role, text, title = role === 'user' ? 'Ты' : 'Milo') {
+      state.messages.unshift({ role, title, time: nowTime(), text });
+      renderPanel();
+    }
+
+    function addTask(prompt) {
+      const task = {
+        id: 'task_' + Math.random().toString(36).slice(2, 8),
+        title: trimTitle(prompt),
+        prompt,
+        progress: 0,
+        status: 'Получена',
+        createdAt: nowTime()
+      };
+      state.tasks.unshift(task);
+      state.currentTask = task;
+      renderPanel();
+      return task;
+    }
+
+    function trimTitle(text) {
+      const t = text.trim();
+      return t.length > 48 ? t.slice(0, 48) + '…' : t;
+    }
+
+    function renderPanel() {
+      tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === state.activeTab));
+
+      if (state.activeTab === 'chat') {
+        panelContent.innerHTML = `<div class="messages">${state.messages.map(m => `
+          <div class="bubble ${m.role === 'user' ? 'user' : ''}">
+            <div class="bubble-head"><span>${escapeHtml(m.title)}</span><span>${m.time}</span></div>
+            <div>${escapeHtml(m.text)}</div>
+          </div>
+        `).join('')}</div>`;
+        return;
+      }
+
+      if (state.activeTab === 'tasks') {
+        panelContent.innerHTML = `<div class="tasks-list">${state.tasks.length ? state.tasks.map(t => `
+          <div class="task-item">
+            <div class="task-top"><div class="task-title">${escapeHtml(t.title)}</div><span class="chip">${escapeHtml(t.status)}</span></div>
+            <div class="task-meta">Создано: ${t.createdAt}</div>
+            <div class="progress"><span style="width:${t.progress}%"></span></div>
+          </div>
+        `).join('') : `<div class="bubble">Пока задач нет. Напиши Milo, что нужно сделать, и тут появится прогресс.</div>`}</div>`;
+        return;
+      }
+
+      panelContent.innerHTML = `
+        <div class="team-grid">
+          <div class="team-card"><div class="chip">режим</div><strong>${state.mode}</strong><small>как Milo ведёт себя в комнате</small></div>
+          <div class="team-card"><div class="chip">энергия</div><strong>${state.energy}%</strong><small>падает при долгой работе и растёт после паузы</small></div>
+          <div class="team-card"><div class="chip">статус</div><strong>${state.assistantState}</strong><small>текущее состояние помощника</small></div>
+          <div class="team-card"><div class="chip">стиль</div><strong>cozy evening</strong><small>тёплый свет, дерево, лампа и кофе</small></div>
+        </div>
+        <div style="height:12px"></div>
+        <div class="bubble">Milo — не толпа ботов, а один спокойный AI-помощник в своей комнате. Он принимает задачу, думает, работает, иногда делает паузу и возвращается с ответом.</div>
+      `;
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function generateResponse(prompt) {
+      const lower = prompt.toLowerCase();
+      if (/(лендинг|landing|сайт)/.test(lower)) {
+        return 'Я бы сделал лендинг из 6 блоков: hero с чётким обещанием, боли пользователя, решение, преимущества, сценарий работы и сильный CTA. Сначала могу расписать структуру, а потом сразу дать готовые тексты для каждого блока.';
+      }
+      if (/(telegram|mini app|мини)/.test(lower)) {
+        return 'Для Mini App я бы начал с трёх экранов: главный экран, карточка действия и экран статуса. Потом добавил бы простую навигацию, крупные кнопки и один главный пользовательский сценарий без перегруза.';
+      }
+      if (/(назв|бренд|слоган|описан)/.test(lower)) {
+        return 'Я бы сначала определил характер проекта: он должен звучать уютно, технологично или дерзко. Потом дам 5 сильных названий, короткий слоган и одно ясное позиционирование, которое легко объяснить людям.';
+      }
+      if (/(roadmap|план|шаг)/.test(lower)) {
+        return 'Хороший путь такой: 1) уточнить цель, 2) собрать простой каркас, 3) быстро сделать первую рабочую версию, 4) отполировать визуал, 5) запустить и получить обратную связь. Я могу сразу расписать это по дням.';
+      }
+      if (/(дизайн|цвет|стиль|уют)/.test(lower)) {
+        return 'Для уютного стиля я бы взял тёплую палитру: тёмная слива, дерево, медовые акценты и мягкий ламповый свет. Главное — меньше холода, меньше пустоты и больше ощущения живой комнаты.';
+      }
+      return 'Задача принята. Я бы начал с короткого плана, потом выделил бы главное решение и только после этого довёл результат до аккуратного финального вида. Могу сейчас разобрать это на шаги или сразу выдать первую версию.';
+    }
+
+    function submitTask(text) {
+      const prompt = text.trim();
+      if (!prompt) return;
+
+      pushMessage('user', prompt);
+      taskInput.value = '';
+      state.mode = 'focus';
+      modeChip.textContent = 'mode: focus';
+      const task = addTask(prompt);
+      setAssistantState('thinking');
+      actor.tx = actor.seat.x;
+      actor.ty = actor.seat.y;
+
+      tickTask(task, 18, 'Разбираю задачу');
+      state.energy = Math.max(40, state.energy - 6);
+      energyChip.textContent = `energy: ${state.energy}%`;
+
+      setTimeout(() => {
+        setAssistantState('working');
+        tickTask(task, 58, 'Собираю ответ');
+      }, 1400);
+
+      setTimeout(() => {
+        const answer = generateResponse(prompt);
+        task.status = 'Готово';
+        task.progress = 100;
+        setAssistantState('done');
+        pushMessage('assistant', answer);
+        renderPanel();
+      }, 3000);
+
+      setTimeout(() => {
+        setAssistantState('idle');
+      }, 5600);
+    }
+
+    function tickTask(task, progress, status) {
+      task.progress = progress;
+      task.status = status;
+      renderPanel();
+    }
+
+    sendBtn.addEventListener('click', () => submitTask(taskInput.value));
+    taskInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        submitTask(taskInput.value);
+      }
+    });
+
+    quickBtns.forEach(btn => btn.addEventListener('click', () => {
+      taskInput.value = btn.dataset.prompt;
+      taskInput.focus();
+    }));
+
+    tabs.forEach(tab => tab.addEventListener('click', () => {
+      state.activeTab = tab.dataset.tab;
+      renderPanel();
+    }));
+
+    randomIdeaBtn.addEventListener('click', () => {
+      taskInput.value = ideas[Math.floor(Math.random() * ideas.length)];
+      taskInput.focus();
+    });
+
+    clearBtn.addEventListener('click', () => {
+      taskInput.value = '';
+      taskInput.focus();
+    });
+
+    function updateBehavior() {
+      actor.animationTick += 1;
+      if (state.assistantState === 'idle') {
+        actor.coffeeCooldown += 1;
+        actor.restCooldown += 1;
+
+        if (actor.coffeeCooldown > 900 && Math.random() < 0.006) {
+          actor.coffeeCooldown = 0;
+          setAssistantState('coffee');
+          actor.tx = actor.coffeeSpot.x;
+          actor.ty = actor.coffeeSpot.y;
+          setTimeout(() => {
+            actor.tx = actor.seat.x;
+            actor.ty = actor.seat.y;
+            setTimeout(() => setAssistantState('idle'), 2000);
+          }, 3400);
+        } else if (actor.restCooldown > 1100 && Math.random() < 0.0045) {
+          actor.restCooldown = 0;
+          setAssistantState('resting');
+          actor.tx = actor.couchSpot.x;
+          actor.ty = actor.couchSpot.y;
+          setTimeout(() => {
+            actor.tx = actor.seat.x;
+            actor.ty = actor.seat.y;
+            setTimeout(() => setAssistantState('idle'), 2000);
+          }, 3600);
+        }
+      }
+
+      const dx = actor.tx - actor.x;
+      const dy = actor.ty - actor.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist > 0.7) {
+        actor.x += dx * 0.08;
+        actor.y += dy * 0.08;
+        actor.facing = dx < 0 ? -1 : 1;
+      } else {
+        actor.x = actor.tx;
+        actor.y = actor.ty;
+      }
+    }
+
+    function drawScene() {
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      drawBackground(w, h);
+      drawWindow(room.window.x, room.window.y, room.window.w, room.window.h);
+      drawBoard(room.board.x, room.board.y, room.board.w, room.board.h);
+      drawShelf(975, 92, 200, 34);
+      drawPlant(room.plant.x, room.plant.y, 1.15);
+      drawCoffeeZone(room.coffee.x, room.coffee.y, room.coffee.w, room.coffee.h);
+      drawCouch(room.couch.x, room.couch.y, room.couch.w, room.couch.h);
+      drawDesk(room.desk.x, room.desk.y, room.desk.w, room.desk.h);
+      drawChair(room.chair.x, room.chair.y, room.chair.w, room.chair.h);
+      drawLamp(844, 406);
+      drawRug(530, 600, 565, 140);
+      drawPlant(515, 518, .95);
+      drawActor(actor.x, actor.y);
+      drawHUD();
+    }
+
+    function drawBackground(w, h) {
+      const wall = ctx.createLinearGradient(0, 0, 0, 420);
+      wall.addColorStop(0, '#513540');
+      wall.addColorStop(1, '#38262f');
+      ctx.fillStyle = wall;
+      ctx.fillRect(0, 0, w, 440);
+
+      const floor = ctx.createLinearGradient(0, 440, 0, h);
+      floor.addColorStop(0, '#3b2a32');
+      floor.addColorStop(1, '#271c23');
+      ctx.fillStyle = floor;
+      ctx.fillRect(0, 440, w, h - 440);
+
+      for (let i = 0; i < 20; i++) {
+        ctx.fillStyle = i % 2 === 0 ? 'rgba(255,220,170,.03)' : 'rgba(0,0,0,.05)';
+        ctx.fillRect(i * 64, 440, 4, h - 440);
+      }
+
+      const glow = ctx.createRadialGradient(840, 250, 30, 840, 250, 360);
+      glow.addColorStop(0, 'rgba(255,200,115,.20)');
+      glow.addColorStop(.4, 'rgba(255,190,110,.07)');
+      glow.addColorStop(1, 'rgba(255,190,110,0)');
+      ctx.fillStyle = glow;
+      ctx.fillRect(470, 0, 720, 650);
+
+      const lampGlow = ctx.createRadialGradient(850, 412, 14, 850, 412, 180);
+      lampGlow.addColorStop(0, 'rgba(255,214,140,.40)');
+      lampGlow.addColorStop(.55, 'rgba(255,214,140,.08)');
+      lampGlow.addColorStop(1, 'rgba(255,214,140,0)');
+      ctx.fillStyle = lampGlow;
+      ctx.beginPath();
+      ctx.arc(850, 412, 185, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function pixelRect(x, y, w, h, fill, stroke = null) {
+      ctx.fillStyle = fill;
+      ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+      if (stroke) {
+        ctx.strokeStyle = stroke;
+        ctx.lineWidth = 4;
+        ctx.strokeRect(Math.round(x) + 2, Math.round(y) + 2, Math.round(w) - 4, Math.round(h) - 4);
+      }
+    }
+
+    function drawWindow(x, y, w, h) {
+      pixelRect(x - 8, y - 8, w + 16, h + 16, '#20171d');
+      pixelRect(x, y, w, h, '#8fb2d9');
+      const sky = ctx.createLinearGradient(0, y, 0, y + h);
+      sky.addColorStop(0, '#b6d1ef');
+      sky.addColorStop(1, '#7798bf');
+      ctx.fillStyle = sky;
+      ctx.fillRect(x + 8, y + 8, w - 16, h - 16);
+      ctx.fillStyle = 'rgba(255,244,208,.22)';
+      ctx.fillRect(x + 40, y + 22, 36, 36);
+      ctx.fillStyle = '#f4f0cf';
+      ctx.beginPath();
+      ctx.arc(x + 58, y + 42, 16, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#6a86a5';
+      for (let i = 0; i < 4; i++) ctx.fillRect(x + 12 + i * 54, y + 16 + (i % 2) * 6, 38, 4);
+      pixelRect(x + w / 2 - 4, y, 8, h, '#5f4a50');
+      pixelRect(x, y + h / 2 - 4, w, 8, '#5f4a50');
+      pixelRect(x - 20, y + h, w + 40, 14, '#513842');
+    }
+
+    function drawShelf(x, y, w, h) {
+      pixelRect(x, y, w, h, '#5a3c35');
+      pixelRect(x + 8, y + 8, w - 16, h - 16, '#6f4b40');
+      const items = [
+        ['#d38d6a', 18], ['#c7c96f', 58], ['#8eb0d6', 98], ['#df7070', 138], ['#8bcf95', 178]
+      ];
+      items.forEach(([c, ox]) => pixelRect(x + ox, y - 18, 22, 24, c));
+    }
+
+    function drawBoard(x, y, w, h) {
+      pixelRect(x, y, w, h, '#5e4138');
+      pixelRect(x + 10, y + 10, w - 20, h - 20, '#f0debf');
+      pixelRect(x + 24, y + 26, 72, 18, '#df9480');
+      pixelRect(x + 110, y + 26, 54, 18, '#f4c576');
+      pixelRect(x + 28, y + 58, 128, 8, '#b18d72');
+      pixelRect(x + 28, y + 80, 94, 8, '#b18d72');
+      pixelRect(x + 28, y + 102, 134, 8, '#b18d72');
+      pixelRect(x + 160, y + 68, 22, 22, '#7ec282');
+    }
+
+    function drawDesk(x, y, w, h) {
+      pixelRect(x + 18, y + 32, w - 36, 20, '#2b1f25');
+      pixelRect(x, y, w, 46, '#805741');
+      pixelRect(x + 12, y + 10, w - 24, 24, '#9a6a51');
+      pixelRect(x + 16, y + 46, 16, h - 46, '#5d4039');
+      pixelRect(x + w - 32, y + 46, 16, h - 46, '#5d4039');
+
+      pixelRect(x + 60, y - 44, 126, 78, '#282329');
+      pixelRect(x + 68, y - 36, 110, 52, '#72a0d0');
+      pixelRect(x + 106, y + 34, 36, 8, '#241b22');
+      pixelRect(x + 112, y + 42, 24, 10, '#382a31');
+      pixelRect(x + 196, y + 8, 54, 28, '#dec7af');
+      pixelRect(x + 208, y + 16, 30, 10, '#f5e7d2');
+      pixelRect(x + 188, y + 16, 8, 18, '#f0d59b');
+      pixelRect(x + 44, y + 12, 52, 22, '#d6c2a9');
+    }
+
+    function drawChair(x, y, w, h) {
+      pixelRect(x + 12, y, w - 24, 20, '#6a4857');
+      pixelRect(x, y + 22, w, 18, '#7c5768');
+      pixelRect(x + 10, y + 40, 10, h - 40, '#4e3641');
+      pixelRect(x + w - 20, y + 40, 10, h - 40, '#4e3641');
+    }
+
+    function drawLamp(x, y) {
+      pixelRect(x, y - 102, 8, 102, '#44323b');
+      pixelRect(x - 10, y - 108, 28, 12, '#5e3e2d');
+      pixelRect(x - 24, y - 98, 56, 34, '#dca45f');
+      const glow = ctx.createRadialGradient(x + 4, y - 76, 12, x + 4, y - 76, 75);
+      glow.addColorStop(0, 'rgba(255,230,170,.32)');
+      glow.addColorStop(.4, 'rgba(255,230,170,.12)');
+      glow.addColorStop(1, 'rgba(255,230,170,0)');
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(x + 4, y - 76, 80, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawCoffeeZone(x, y, w, h) {
+      pixelRect(x, y, w, h, '#4b333b');
+      pixelRect(x + 10, y + 10, w - 20, h - 20, '#65434f');
+      pixelRect(x + 22, y - 58, 68, 64, '#f1e0c4');
+      pixelRect(x + 32, y - 46, 48, 34, '#2b1f23');
+      pixelRect(x + 98, y - 40, 18, 46, '#a97a5f');
+      pixelRect(x + 100, y - 50, 14, 12, '#f4c677');
+      pixelRect(x + 42, y + 30, 22, 14, '#f1c46a');
+      pixelRect(x + 70, y + 30, 22, 14, '#e38f6c');
+      pixelRect(x + 52, y + 50, 16, 16, '#faf1de');
+      pixelRect(x + 76, y + 50, 16, 16, '#faf1de');
+      pixelRect(x + 102, y + 54, 12, 22, '#d7bea4');
+      pixelRect(x + 120, y + 54, 12, 22, '#d7bea4');
+    }
+
+    function drawCouch(x, y, w, h) {
+      pixelRect(x, y + 18, w, h - 18, '#7a5361');
+      pixelRect(x + 10, y + 4, w - 20, 28, '#9c6c7e');
+      pixelRect(x + 18, y + 38, 56, 30, '#b6838f');
+      pixelRect(x + 84, y + 38, 56, 30, '#b6838f');
+      pixelRect(x + 150, y + 38, 56, 30, '#b6838f');
+      pixelRect(x + 24, y + h - 4, 20, 14, '#4b333b');
+      pixelRect(x + w - 44, y + h - 4, 20, 14, '#4b333b');
+    }
+
+    function drawRug(x, y, w, h) {
+      pixelRect(x, y, w, h, '#6e4a58');
+      pixelRect(x + 16, y + 16, w - 32, h - 32, '#8c6173');
+      pixelRect(x + 60, y + 40, 120, 12, '#d8b06d');
+      pixelRect(x + 230, y + 68, 150, 12, '#d8b06d');
+    }
+
+    function drawPlant(x, y, scale) {
+      pixelRect(x, y + 50 * scale, 30 * scale, 28 * scale, '#8f6a53');
+      pixelRect(x + 12 * scale, y, 8 * scale, 30 * scale, '#5f915c');
+      pixelRect(x, y + 10 * scale, 10 * scale, 20 * scale, '#7fcf8c');
+      pixelRect(x + 20 * scale, y + 8 * scale, 10 * scale, 20 * scale, '#7fcf8c');
+      pixelRect(x + 4 * scale, y + 24 * scale, 22 * scale, 16 * scale, '#68b879');
+    }
+
+    function drawActor(x, y) {
+      const walk = Math.sin(actor.animationTick * 0.15) * 2;
+      const moving = Math.hypot(actor.tx - actor.x, actor.ty - actor.y) > 5;
+      const bob = moving ? walk : 0;
+
+      const px = Math.round(x);
+      const py = Math.round(y + bob);
+      const dir = actor.facing;
+
+      pixelRect(px - 16, py - 56, 32, 20, '#4d312e');
+      pixelRect(px - 20, py - 36, 40, 28, '#f0c7a0');
+      pixelRect(px - 12, py - 28, 4, 4, '#24171b');
+      pixelRect(px + 8, py - 28, 4, 4, '#24171b');
+      pixelRect(px - 4, py - 16, 8, 4, '#d48f83');
+      pixelRect(px - 18, py - 8, 36, 36, '#7d6dbe');
+      pixelRect(px - 26, py, 8, 18, '#f0c7a0');
+      pixelRect(px + 18, py, 8, 18, '#f0c7a0');
+      pixelRect(px - 14, py + 28, 10, 22, '#39292f');
+      pixelRect(px + 4, py + 28, 10, 22, '#39292f');
+      pixelRect(px - 18, py + 50, 16, 6, '#241a20');
+      pixelRect(px + 2, py + 50, 16, 6, '#241a20');
+
+      if (state.assistantState === 'working' || state.assistantState === 'thinking') {
+        pixelRect(px + (dir === 1 ? 28 : -36), py + 4, 12, 8, '#f2c778');
+      }
+
+      const bubbleText = actor.currentBubble;
+      drawSpeech(px, py - 92, bubbleText);
+    }
+
+    function drawSpeech(x, y, text) {
+      const padding = 12;
+      ctx.font = 'bold 18px Inter, system-ui, sans-serif';
+      const tw = ctx.measureText(text).width;
+      const w = tw + padding * 2;
+      const h = 34;
+      const bx = Math.round(x - w / 2);
+      const by = Math.round(y);
+      ctx.fillStyle = 'rgba(24,18,22,.82)';
+      roundRect(bx, by, w, h, 14, true, false);
+      ctx.strokeStyle = 'rgba(255,255,255,.08)';
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x - 8, by + h);
+      ctx.lineTo(x + 8, by + h);
+      ctx.lineTo(x, by + h + 10);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(24,18,22,.82)';
+      ctx.fill();
+      ctx.fillStyle = '#f7e7d2';
+      ctx.fillText(text, bx + padding, by + 22);
+    }
+
+    function drawHUD() {
+      ctx.fillStyle = 'rgba(17,12,16,.52)';
+      roundRect(26, 24, 280, 92, 18, true, false);
+      ctx.fillStyle = '#f8ead7';
+      ctx.font = '700 20px Inter, system-ui, sans-serif';
+      ctx.fillText('Комната Milo', 44, 56);
+      ctx.fillStyle = '#ccb8a3';
+      ctx.font = '14px Inter, system-ui, sans-serif';
+      ctx.fillText('теплый свет · работа у стола · кофе без суеты', 44, 84);
+
+      ctx.fillStyle = 'rgba(17,12,16,.52)';
+      roundRect(980, 24, 274, 100, 18, true, false);
+      ctx.fillStyle = '#f8ead7';
+      ctx.font = '700 18px Inter, system-ui, sans-serif';
+      ctx.fillText('Сейчас', 998, 52);
+      ctx.fillStyle = '#ccb8a3';
+      ctx.font = '14px Inter, system-ui, sans-serif';
+      ctx.fillText(`режим: ${state.mode}`, 998, 78);
+      ctx.fillText(`состояние: ${state.assistantState}`, 998, 100);
+    }
+
+    function roundRect(x, y, w, h, r, fill, stroke) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+      if (fill) ctx.fill();
+      if (stroke) ctx.stroke();
+    }
+
+    function frame() {
+      updateBehavior();
+      drawScene();
+      requestAnimationFrame(frame);
+    }
+
+    renderPanel();
+    setAssistantState('idle');
+    frame();
+  </script>
+</body>
+</html>
